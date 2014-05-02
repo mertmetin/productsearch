@@ -1,8 +1,0 @@
-from scrapy.contrib.djangoitem import DjangoItem
-from products.models import Product, Category
-
-class ProductItem(DjangoItem):
-    django_model = Product
-    
-class CategoryItem(DjangoItem):
-    django_model = Category
