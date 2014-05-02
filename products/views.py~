@@ -1,7 +1,0 @@
-from django.shortcuts import render_to_response
-from haystack.views import SearchView
-
-
-
-def search(request):
-    return SearchView(template='search/search.html')(request)
