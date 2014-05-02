@@ -1,0 +1,70 @@
+from scrapy.spider import BaseSpider
+from scrapy.selector import HtmlXPathSelector
+from scrapy.http import Request
+
+from product.items import Product
+
+
+def complete_url(string):
+    """Return complete url"""
+    return "http://www.staples.ca" + string
+
+
+def split_title(title):
+    splitted_text = title.split(',')
+    new_title = splitted_text[0]
+    splitted_text.pop(0)
+    new_description = ""
+    
+    for i in splitted_text:
+        new_description += i
+        
+    return (new_title, new_description)
+        
+
+class Staples(BaseSpider):
+    name = "staples"
+    allowed_domains = ["staples.ca"]
+    start_urls = [
+        "http://www.staples.ca/en/Laptop-Computers/cat_CL200591_2-CA_1_20001?pagenum=%d" % i for i in range(1,10)
+    ]
+    
+    start_urls.append("http://www.staples.ca/en/MacBook-Pro/cat_CL200588_2-CA_1_20001")
+    start_urls.append("http://www.staples.ca/en/MacBook-Air/cat_CL200587_2-CA_1_20001")
+    start_urls.append("http://www.staples.ca/en/Ultrabooks/cat_CL200594_2-CA_1_20001")
+    start_urls.append("http://www.staples.ca/en/Gaming-Laptop-Computers/cat_CL211097_2-CA_1_20001")
+    
+    def parse(self, response):
+        hxs = HtmlXPathSelector(response)
+        sites = hxs.select('//ul[@id="productDetail"]')
+        
+        urls = []
+
+        for site in sites:
+            urls = site.select("//a[contains(@class,'url')]/@href").extract()
+            
+            
+        for url in urls:
+            yield Request(complete_url(url), callback=self.parse_detail_page)
+           
+            
+    def parse_detail_page(self, response):
+        hxs = HtmlXPathSelector(response)
+        sites = hxs.select('//div[@class="layoutWidth09 productDetailsWrapper"]')
+        items = []
+        
+        for site in sites:
+            item = Product()
+            title = site.select('//*[@id="skuspecial"]/div[2]/h1/text()').extract()
+            price = site.select('//*[@id="stage2"]/div[1]/dl/dd[1]/b/i/text()').extract()
+            
+            item['title'], item['description'] = split_title(title[0])
+            item['price'] = price[0]
+            item['url'] = response.url
+                    
+
+           
+            items.append(item)
+            
+        return items
+

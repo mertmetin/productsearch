@@ -1,0 +1,39 @@
+from scrapy.spider import BaseSpider
+from scrapy.selector import HtmlXPathSelector
+from scrapy.http import Request
+
+from product.items import Product
+
+
+def complete_url(string):
+    """Return complete url"""
+    return "http://www.canadacomputers.com" + string
+
+class CanadaComputers(BaseSpider):
+    name = "canadacomputers"
+    allowed_domains = ["canadacomputers.com"]
+    
+    start_urls = [
+        "http://www.canadacomputers.com/index.php?cPath=710_577&&page=%d" % i for i in range(1,3)
+    ]
+  
+    
+    def parse(self, response):
+        hxs = HtmlXPathSelector(response)
+        sites = hxs.select("//table[contains(@class,'productListing')]")
+        
+
+        for site in sites:
+            urls = site.select("//div[contains(@class,'item_description')]/a/@href").extract()
+            
+        for url in urls:
+           yield Request(complete_url(url), callback=self.parse_detail_page)
+           
+            
+    def parse_detail_page(self, response):
+        items = []
+
+           
+
+            
+        return items

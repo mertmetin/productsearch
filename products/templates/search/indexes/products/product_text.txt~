@@ -1,0 +1,7 @@
+{{ object.title }}
+{{ object.url }}
+
+"sort" : [
+       { "price": {"order" : "asc" , "missing" : "_last" , "ignore_unmapped" : true} }
+]
+
